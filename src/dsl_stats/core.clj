@@ -6,7 +6,8 @@
             [clj-time.core :as t]
             [clj-time.coerce :as c]
             [clj-time.periodic :refer [periodic-seq]]
-            [chime :refer [chime-at]])
+            [chime :refer [chime-at]]
+            [clojure.tools.cli :refer [parse-opts]])
   (:import [org.joda.time DateTimeZone])
   (:gen-class))
 
@@ -15,10 +16,13 @@
                                      (withTime 8 0 0 0))
                                  (-> 1 t/days))))
 
+(def cli-options
+  [["-s" "--scheduled" (str "Run in foreground performing a check daily at " (take 1 schedule))]])
+
 (defn usage-color [usage]
   (let [standard (:standard usage)
-        nightly (:nightly usage)
-        check (:month usage)]
+        nightly  (:nightly usage)
+        check    (:month usage)]
     (cond
       (and (> check (:percentage standard)) (> check (:percentage nightly)))
       "good"
@@ -31,7 +35,7 @@
 (defn usage-payload [usage]
   (let [standard (:standard usage)
         nightly (:nightly usage)]
-    {:username "mweb-usage-bot"
+    {:username "adsl-usage"
      :icon_emoji ":grumpycat:"
      :fallback (str "ADSL usage: " (:used standard) "/" (:used nightly))
      :attachments
@@ -64,10 +68,16 @@
   (future (infinite-loop fn))
   nil)
 
-(defn -main []
-  (chime-at schedule post-adsl-usage)
-
-  (infinite-loop
-   #(dq
-      (Thread/sleep 30000)
-      (swap! counter inc))))
+(defn -main [& args]
+  (let [{:keys [options]} (parse-opts args cli-options)]
+    (cond
+      (:scheduled options)
+      (do
+        (println "Starting in scheduled mode")
+        (chime-at schedule (fn [_] (post-adsl-usage)))
+        (infinite-loop
+         #(do
+            (Thread/sleep 30000)
+            (swap! counter inc))))
+      :else
+      (post-adsl-usage))))

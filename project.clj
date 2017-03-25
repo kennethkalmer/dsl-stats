@@ -1,4 +1,4 @@
-(defproject dsl-stats "0.1.0-SNAPSHOT"
+(defproject dsl-stats "0.2.0-SNAPSHOT"
   :description "FIXME: write description"
   :url "http://example.com/FIXME"
   :license {:name "Eclipse Public License"
@@ -9,5 +9,6 @@
                  [enlive "1.1.6"]
                  [clj-time "0.11.0"]
                  [cprop "0.1.8"]
-                 [jarohen/chime "0.1.9"]]
+                 [jarohen/chime "0.1.9"]
+                 [org.clojure/tools.cli "0.3.5"]]
   :main dsl-stats.core)

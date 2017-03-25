@@ -33,28 +33,22 @@
                              {:cookie-store cs})]
     (html/html-snippet (:body response))))
 
-(defn format-usage [nodes]
-  (->> nodes
-       (map :content)
-       (map #(str/join " " %1))
-       (remove str/blank?)
-       (str/join " ")
-       (str/trim)))
-
-(defn extract-usage [nodes]
-  (let [[used total percentage] (map #(Float/parseFloat %) (re-seq #"[\d\.]+" (format-usage nodes)))]
+(defn extract-usage [node]
+  (let [attrs (:attrs node)
+        percentage (Float/parseFloat (:data-percent attrs))
+        [used total] (map #(Float/parseFloat %) (re-seq #"[\d\.]+" (:data-info attrs)))]
     {:used       used
      :total      total
      :percentage percentage}))
 
-(def ^:dynamic *standard-usage-selector* [:#usageStatus [:p (html/nth-child 3)]])
-(def ^:dynamic *nightly-usage-selector* [:#usageStatus [:p (html/nth-child 5)]])
+(def ^:dynamic *standard-usage-selector* [:#circlifulStandardUsage])
+(def ^:dynamic *nightly-usage-selector* [:#circlifulNightUsage])
 
 (defn get-standard-usage [dom]
-  (extract-usage (:content (first (html/select dom *standard-usage-selector*)))))
+  (extract-usage (first (html/select dom *standard-usage-selector*))))
 
 (defn get-nightly-usage [dom]
-  (extract-usage (:content (first (html/select dom *nightly-usage-selector*)))))
+  (extract-usage (first (html/select dom *nightly-usage-selector*))))
 
 (defn get-month-progress []
   (let [today (t/now)
